@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca del Aprendiz - Trivia Masonica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0a0a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(218,165,32,0.3) 0%, transparent 100%);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #daa520;
+            text-shadow: 0 0 20px rgba(218,165,32,0.5);
+            letter-spacing: 3px;
+        }
+
+        .header p {
+            color: #8888cc;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 95%;
+            margin: 20px auto;
+            flex: 1;
+        }
+
+        /* Pantalla de inicio */
+        .start-screen {
+            text-align: center;
+            padding: 60px 30px;
+        }
+
+        .start-screen .symbol {
+            font-size: 100px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px rgba(218,165,32,0.6));
+        }
+
+        .start-screen h2 {
+            font-size: 1.8rem;
+            color: #daa520;
+            margin-bottom: 15px;
+        }
+
+        .start-screen p {
+            color: #aaa;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #daa520, #b8860b);
+            color: #0a0a2e;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(218,165,32,0.6);
+        }
+
+        /* HUD del juego */
+        .game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(218,165,32,0.2);
+        }
+
+        .hud-item {
+            text-align: center;
+        }
+
+        .hud-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hud-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #daa520;
+        }
+
+        .difficulty-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .difficulty-badge.facil { background: #2d5a27; color: #7ddf64; }
+        .difficulty-badge.intermedio { background: #5a4a27; color: #dfbf64; }
+        .difficulty-badge.dificil { background: #5a2727; color: #df6464; }
+
+        /* Barra de progreso */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #daa520, #ffd700);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* Pregunta */
+        .question-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(218,165,32,0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .question-number {
+            color: #daa520;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.5;
+            color: #eee;
+        }
+
+        /* Opciones */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, rgba(30,30,80,0.9), rgba(20,20,60,0.9));
+            border: 2px solid rgba(100,100,200,0.3);
+            color: #ddd;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: #daa520;
+            background: linear-gradient(135deg, rgba(50,50,100,0.9), rgba(40,40,80,0.9));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(218,165,32,0.2);
+        }
+
+        .option-letter {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(218,165,32,0.2);
+            color: #daa520;
+            border-radius: 50%;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, rgba(30,80,30,0.9), rgba(20,60,20,0.9));
+            animation: pulse-green 0.5s;
+        }
+
+        .option-btn.correct .option-letter {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .option-btn.incorrect {
+            border-color: #f44336;
+            background: linear-gradient(135deg, rgba(80,30,30,0.9), rgba(60,20,20,0.9));
+            animation: shake 0.5s;
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .option-btn.disabled { cursor: default; opacity: 0.6; }
+
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 rgba(76,175,80,0); }
+            50% { box-shadow: 0 0 30px rgba(76,175,80,0.5); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* ExplicaciÃ³n */
+        .explanation {
+            background: rgba(218,165,32,0.1);
+            border: 1px solid rgba(218,165,32,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .explanation.show { display: block; animation: fadeIn 0.5s; }
+
+        .explanation h4 {
+            color: #daa520;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .explanation p {
+            color: #ccc;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .btn-next {
+            display: none;
+            margin: 20px auto 0;
+            background: linear-gradient(135deg, #daa520, #b8860b);
+            color: #0a0a2e;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-next.show { display: block; }
+        .btn-next:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(218,165,32,0.4); }
+
+        /* Pantalla de resultados */
+        .results-screen {
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .results-screen .score-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 6px solid #daa520;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+            background: rgba(218,165,32,0.1);
+        }
+
+        .score-circle .score-number {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #daa520;
+        }
+
+        .score-circle .score-label {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .stat-card.correct-stat .stat-value { color: #4CAF50; }
+        .stat-card.incorrect-stat .stat-value { color: #f44336; }
+        .stat-card.percentage-stat .stat-value { color: #daa520; }
+
+        .result-message {
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none; }
+
+        /* Comodines */
+        .lifelines {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .lifeline-btn {
+            background: rgba(218,165,32,0.15);
+            border: 2px solid rgba(218,165,32,0.4);
+            color: #daa520;
+            padding: 10px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lifeline-btn:hover:not(.used) {
+            background: rgba(218,165,32,0.3);
+            transform: translateY(-2px);
+        }
+
+        .lifeline-btn.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f44336, #daa520, #4CAF50);
+            border-radius: 2px;
+            transition: width 1s linear;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Biblioteca del Aprendiz</h1>
+        <p>Trivia Masonica - Primer Grado</p>
+    </div>
+
+    <div class="game-container">
+        <!-- Pantalla de inicio -->
+        <div id="startScreen" class="start-screen">
+            <div class="symbol">&#9776;</div>
+            <h2>Trivia del Aprendiz Mason</h2>
+            <p>
+                20 preguntas basadas en los textos fundamentales del Primer Grado:<br>
+                <strong>Wirth, Lavagnini, Ritual de Aprendiz</strong><br><br>
+                3 niveles de dificultad: Facil - Intermedio - Dificil<br>
+                Comodines disponibles: 50/50 y Saltar Pregunta
+            </p>
+            <button class="btn-start" onclick="startGame()">Comenzar</button>
+        </div>
+
+        <!-- Pantalla de juego -->
+        <div id="gameScreen" class="hidden">
+            <div class="game-hud">
+                <div class="hud-item">
+                    <div class="hud-label">Pregunta</div>
+                    <div class="hud-value" id="questionCounter">1/20</div>
+                </div>
+                <div class="hud-item">
+                    <span class="difficulty-badge" id="difficultyBadge">Facil</span>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Puntos</div>
+                    <div class="hud-value" id="scoreDisplay">0</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill"></div>
+            </div>
+
+            <div class="lifelines">
+                <button class="lifeline-btn" id="lifeline5050" onclick="use5050()">
+                    <span>50:50</span>
+                </button>
+                <button class="lifeline-btn" id="lifelineSkip" onclick="useSkip()">
+                    <span>Saltar</span>
+                </button>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number" id="questionLabel">Pregunta 1 de 20</div>
+                <div class="question-text" id="questionText"></div>
+            </div>
+
+            <div class="options-grid" id="optionsGrid"></div>
+
+            <div class="explanation" id="explanation">
+                <h4>Explicacion:</h4>
+                <p id="explanationText"></p>
+            </div>
+
+            <button class="btn-next" id="btnNext" onclick="nextQuestion()">Siguiente Pregunta</button>
+        </div>
+
+        <!-- Pantalla de resultados -->
+        <div id="resultsScreen" class="hidden results-screen">
+            <h2 style="color: #daa520; font-size: 1.8rem;">Resultados Finales</h2>
+            <div class="score-circle">
+                <div class="score-number" id="finalScore">0</div>
+                <div class="score-label">puntos</div>
+            </div>
+            <div class="result-message" id="resultMessage"></div>
+            <div class="results-stats">
+                <div class="stat-card correct-stat">
+                    <div class="stat-value" id="correctCount">0</div>
+                    <div class="stat-label">Correctas</div>
+                </div>
+                <div class="stat-card incorrect-stat">
+                    <div class="stat-value" id="incorrectCount">0</div>
+                    <div class="stat-label">Incorrectas</div>
+                </div>
+                <div class="stat-card percentage-stat">
+                    <div class="stat-value" id="percentageScore">0%</div>
+                    <div class="stat-label">Aciertos</div>
+                </div>
+            </div>
+            <button class="btn-start" onclick="restartGame()">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        const preguntas = [
+            {"id":1,"pregunta":"Â¿En quÃ© aÃ±o se fundÃ³ la FrancmasonerÃ­a moderna segÃºn los anales histÃ³ricos?","opciones":["1689","1717","1789","1894"],"respuesta_correcta":"1717","dificultad":"FÃ¡cil","explicacion":"SegÃºn Wirth en 'El Libro del Aprendiz' (p.8), los anales de la instituciÃ³n se remontan al aÃ±o 1717, fecha de la fundaciÃ³n de la FrancmasonerÃ­a moderna."},
+            {"id":2,"pregunta":"Â¿CuÃ¡l es el nombre completo del tÃ­tulo del libro de Oswald Wirth destinado a los Francmasones del Primer Grado?","opciones":["El Manual del CompaÃ±ero","El Libro del Aprendiz - Manual de InstrucciÃ³n IniciÃ¡tica","La MasonerÃ­a Revelada","IntroducciÃ³n al Grado de Aprendiz"],"respuesta_correcta":"El Libro del Aprendiz - Manual de InstrucciÃ³n IniciÃ¡tica","dificultad":"FÃ¡cil","explicacion":"La portada del libro de Wirth indica: 'El Libro del Aprendiz - Manual de InstrucciÃ³n IniciÃ¡tica para el uso de los Francmasones del Primer Grado' (1894)."},
+            {"id":3,"pregunta":"Â¿QuÃ© significan las siglas Gâ´Aâ´Dâ´Uâ´ en la MasonerÃ­a?","opciones":["Gran Asamblea de la UniÃ³n","Gran Arquitecto del Universo","Grado Antiguo de Universalidad","Gran Academia de la Unidad"],"respuesta_correcta":"Gran Arquitecto del Universo","dificultad":"FÃ¡cil","explicacion":"SegÃºn el Ritual de Aprendiz (p.4), la MasonerÃ­a proclama como Gran Arquitecto del Universo al reconocimiento de un Principio o causa primera."},
+            {"id":4,"pregunta":"Â¿De quÃ© tipo de profesionales deriva histÃ³ricamente la FrancmasonerÃ­a?","opciones":["FilÃ³sofos y teÃ³logos","Picapedreros y arquitectos","Militares y nobles","Alquimistas y astrÃ³logos"],"respuesta_correcta":"Picapedreros y arquitectos","dificultad":"FÃ¡cil","explicacion":"Wirth seÃ±ala en 'El Libro del Aprendiz' (p.8) que la FrancmasonerÃ­a deriva de una confederaciÃ³n de picapedreros y arquitectos de la Edad Media."},
+            {"id":5,"pregunta":"Â¿CuÃ¡ntos grados tiene la iniciaciÃ³n masÃ³nica segÃºn Wirth?","opciones":["Dos","Tres","Cinco","Siete"],"respuesta_correcta":"Tres","dificultad":"FÃ¡cil","explicacion":"En la secciÃ³n 'La IniciaciÃ³n MasÃ³nica - Los tres Grados' (p.66), Wirth explica que la transformaciÃ³n se verifica en tres fases: Aprendiz, CompaÃ±ero y Maestro."},
+            {"id":6,"pregunta":"Â¿A quÃ© hora acostumbran los Aprendices Masones a abrir sus trabajos segÃºn el Ritual?","opciones":["Al amanecer","A mediodÃ­a en punto","A medianoche","A las seis de la tarde"],"respuesta_correcta":"A mediodÃ­a en punto","dificultad":"FÃ¡cil","explicacion":"En el Ritual de Aprendiz (Apertura de los Trabajos, p.8), el Primer Vigilante responde: 'A mediodÃ­a en punto, Venerable Maestro'."},
+            {"id":7,"pregunta":"Â¿CuÃ¡l es el primer deber de un masÃ³n en Logia segÃºn el Ritual de Aprendiz?","opciones":["Saludar al Venerable Maestro","Asegurar si el Templo estÃ¡ cubierto exteriormente","Recitar el juramento","Encender las luces del Templo"],"respuesta_correcta":"Asegurar si el Templo estÃ¡ cubierto exteriormente","dificultad":"Intermedio","explicacion":"En el Ritual de Aprendiz (Apertura de los Trabajos), el VM pregunta al 1Â° Vigilante su primer deber y este responde: 'Asegurarme si el Templo estÃ¡ cubierto exteriormente'."},
+            {"id":8,"pregunta":"Â¿QuÃ© representan las dos columnas en la MasonerÃ­a segÃºn Wirth?","opciones":["Fuerza y Belleza","GeneraciÃ³n (masculino-activo) y OrganizaciÃ³n (femenino-pasivo)","Bien y Mal","Cielo y Tierra"],"respuesta_correcta":"GeneraciÃ³n (masculino-activo) y OrganizaciÃ³n (femenino-pasivo)","dificultad":"Intermedio","explicacion":"Wirth explica (p.8) que los elementos de GeneraciÃ³n y OrganizaciÃ³n estÃ¡n representados por dos columnas: la primera (masculino-activo) establece y funda, la segunda (femenino-pasivo) consolida y mantiene."},
+            {"id":9,"pregunta":"Â¿QuÃ© debe hacer el profano con sus objetos metÃ¡licos al ser admitido en la FrancmasonerÃ­a?","opciones":["Fundirlos en el crisol","Despojarse de todos y entregarlos al Hermano Experto","Depositarlos en el Altar","Conservarlos como sÃ­mbolo de riqueza"],"respuesta_correcta":"Despojarse de todos y entregarlos al Hermano Experto","dificultad":"Intermedio","explicacion":"Wirth en 'Los Metales' (p.66) indica que el profano es invitado a despojarse de todos los objetos metÃ¡licos que debe entregar al Hermano Experto."},
+            {"id":10,"pregunta":"Â¿QuÃ© simbolizan los metales en el contexto de la iniciaciÃ³n masÃ³nica?","opciones":["La riqueza material que debe compartirse","Todo lo que brilla con engaÃ±oso destello y las falsas nociones","Los elementos de la naturaleza","Los instrumentos de trabajo del masÃ³n"],"respuesta_correcta":"Todo lo que brilla con engaÃ±oso destello y las falsas nociones","dificultad":"Intermedio","explicacion":"Wirth explica (p.66) que los metales representan todo lo que brilla con engaÃ±oso destello, las falsas nociones admitidas por el comÃºn de las personas."},
+            {"id":11,"pregunta":"SegÃºn Lavagnini, Â¿sobre quÃ© trÃ­plice base labra la MasonerÃ­a el progreso de la Humanidad?","opciones":["Fe, Esperanza y Caridad","Libertad, Igualdad y Fraternidad","EducaciÃ³n moral, progreso espiritual y cumplimiento de deberes","SabidurÃ­a, Fuerza y Belleza"],"respuesta_correcta":"EducaciÃ³n moral, progreso espiritual y cumplimiento de deberes","dificultad":"Intermedio","explicacion":"Lavagnini en el 'Manual del Aprendiz' (Prefacio) establece que el objeto de la InstituciÃ³n es labrar el progreso de la Humanidad sobre la trÃ­plice base de la educaciÃ³n moral, del progreso espiritual y del cumplimiento de deberes."},
+            {"id":12,"pregunta":"Â¿QuÃ© Rito sigue el Ritual de Aprendiz de la Gran Logia de la Argentina?","opciones":["Rito de York","Rito EscocÃ©s Antiguo y Aceptado","Rito de EmulaciÃ³n","Rito FrancÃ©s Moderno"],"respuesta_correcta":"Rito EscocÃ©s Antiguo y Aceptado","dificultad":"FÃ¡cil","explicacion":"La portada del Ritual indica: 'Ritual del Aprendiz Mason - Primer Grado del Rito EscocÃ©s Antiguo y Aceptado'."},
+            {"id":13,"pregunta":"Â¿QuÃ© simboliza el grado de 'CompaÃ±ero' segÃºn Wirth?","opciones":["La muerte mÃ­stica","La iluminaciÃ³n propia del verdadero Iniciado","El dominio de los metales","La construcciÃ³n del Templo interior"],"respuesta_correcta":"La iluminaciÃ³n propia del verdadero Iniciado","dificultad":"Intermedio","explicacion":"Wirth explica en 'La IniciaciÃ³n MasÃ³nica' (p.66) que el simbolismo del grado de CompaÃ±ero se refiere a la 'iluminaciÃ³n' propia del verdadero Iniciado."},
+            {"id":14,"pregunta":"Â¿QuÃ© herramientas utiliza el Aprendiz para pulir la Piedra Bruta?","opciones":["La Escuadra y el CompÃ¡s","El Cincel y el Martillo","La Plomada y el Nivel","La Regla y el Mazo"],"respuesta_correcta":"El Cincel y el Martillo","dificultad":"FÃ¡cil","explicacion":"En la pÃ¡gina 3 de Wirth se describe al 'Aprendiz delante de la piedra bruta que debe pulir con ayuda del Cincel y el Martillo'."},
+            {"id":15,"pregunta":"Â¿QuÃ© implica la invocaciÃ³n del Gâ´Aâ´Dâ´Uâ´ segÃºn el Ritual de Aprendiz?","opciones":["La creencia obligatoria en un dios especÃ­fico","El reconocimiento de un Principio o causa primera, sin imposiciÃ³n de religiÃ³n","La adhesiÃ³n al catolicismo","La negaciÃ³n de toda divinidad"],"respuesta_correcta":"El reconocimiento de un Principio o causa primera, sin imposiciÃ³n de religiÃ³n","dificultad":"Intermedio","explicacion":"El Ritual de Aprendiz (p.4) establece que la invocaciÃ³n del Gâ´Aâ´Dâ´Uâ´ no implica la creencia en el dios de una religiÃ³n determinada, dejando libertad a cada miembro."},
+            {"id":16,"pregunta":"Â¿QuiÃ©n ocupa el sitial en Oriente y dirige la apertura de los trabajos en Logia?","opciones":["El Primer Vigilante","El Gran Maestre","El Venerable Maestro","El Hermano Experto"],"respuesta_correcta":"El Venerable Maestro","dificultad":"FÃ¡cil","explicacion":"El Ritual de Aprendiz indica que 'el VM ocupa su sitial en Oriente y dando un golpe de Mallete, procede a la apertura de los trabajos'."},
+            {"id":17,"pregunta":"SegÃºn Wirth, Â¿quÃ© representa el oro en el simbolismo masÃ³nico?","opciones":["La vanidad humana","El sÃ­mbolo de lo puro y perfecto","La riqueza de la Logia","El poder del Venerable Maestro"],"respuesta_correcta":"El sÃ­mbolo de lo puro y perfecto","dificultad":"DifÃ­cil","explicacion":"Wirth seÃ±ala (p.66) que el masÃ³n debe operar sobre sÃ­ mismo una transmutaciÃ³n semejante a la de los alquimistas, y que 'el oro es el sÃ­mbolo de lo puro y perfecto'."},
+            {"id":18,"pregunta":"Â¿QuÃ© trabajo corresponde realizar al Aprendiz segÃºn la 'Obra de los FilÃ³sofos' mencionada por Wirth?","opciones":["La segunda parte de la Gran Obra","La primera parte de 'La Obra de los FilÃ³sofos'","La culminaciÃ³n del Templo de SalomÃ³n","La transmutaciÃ³n directa de los metales en oro"],"respuesta_correcta":"La primera parte de 'La Obra de los FilÃ³sofos'","dificultad":"DifÃ­cil","explicacion":"Wirth indica (p.66) que 'corresponde al Aprendiz realizar la primera parte de La Obra de los FilÃ³sofos'."},
+            {"id":19,"pregunta":"Â¿En quÃ© fecha fue aprobado originalmente el Ritual del Aprendiz MasÃ³n de la Gran Logia Argentina?","opciones":["24 de junio de 1963","23 de julio de 2008","1 de enero de 1900","15 de agosto de 1945"],"respuesta_correcta":"24 de junio de 1963","dificultad":"DifÃ­cil","explicacion":"SegÃºn la pÃ¡gina 2 del Ritual de Aprendiz, el contenido fue aprobado por la Asamblea de la Gran Logia en su reuniÃ³n del 24 de junio de 1963."},
+            {"id":20,"pregunta":"SegÃºn Lavagnini, Â¿quÃ© constituye el presupuesto indispensable de todo aprendizaje?","opciones":["La obediencia al Venerable Maestro","El deseo de conocer","El dominio de los rituales","La memorizaciÃ³n de los catecismos"],"respuesta_correcta":"El deseo de conocer","dificultad":"DifÃ­cil","explicacion":"Lavagnini establece en el Prefacio del 'Manual del Aprendiz' que 'el deseo de conocer constituye el presupuesto indispensable de todo aprendizaje'."}
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let shuffledQuestions = [];
+        let answered = false;
+        let timer = null;
+        let timeLeft = 30;
+        let lifeline5050Used = false;
+        let lifelineSkipUsed = false;
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startGame() {
+            // Ordenar: FÃ¡cil primero, luego Intermedio, luego DifÃ­cil
+            const facil = shuffleArray(preguntas.filter(p => p.dificultad === 'FÃ¡cil'));
+            const intermedio = shuffleArray(preguntas.filter(p => p.dificultad === 'Intermedio'));
+            const dificil = shuffleArray(preguntas.filter(p => p.dificultad === 'DifÃ­cil'));
+            shuffledQuestions = [...facil, ...intermedio, ...dificil];
+
+            currentQuestion = 0;
+            score = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            lifeline5050Used = false;
+            lifelineSkipUsed = false;
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('lifeline5050').classList.remove('used');
+            document.getElementById('lifelineSkip').classList.remove('used');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const q = shuffledQuestions[currentQuestion];
+
+            document.getElementById('questionCounter').textContent = `${currentQuestion + 1}/20`;
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('progressFill').style.width = `${(currentQuestion / 20) * 100}%`;
+            document.getElementById('questionLabel').textContent = `Pregunta ${currentQuestion + 1} de 20`;
+            document.getElementById('questionText').textContent = q.pregunta;
+
+            const badge = document.getElementById('difficultyBadge');
+            const diffClass = q.dificultad === 'FÃ¡cil' ? 'facil' : q.dificultad === 'Intermedio' ? 'intermedio' : 'dificil';
+            badge.className = `difficulty-badge ${diffClass}`;
+            badge.textContent = q.dificultad;
+
+            const letters = ['A', 'B', 'C', 'D'];
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            const shuffledOptions = shuffleArray(q.opciones.map((opt, i) => ({ text: opt, original: i })));
+
+            shuffledOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt.text}</span>`;
+                btn.onclick = () => selectAnswer(btn, opt.text);
+                btn.dataset.answer = opt.text;
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('explanation').classList.remove('show');
+            document.getElementById('btnNext').classList.remove('show');
+
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            const timerFill = document.getElementById('timerFill');
+            timerFill.style.transition = 'none';
+            timerFill.style.width = '100%';
+
+            setTimeout(() => {
+                timerFill.style.transition = 'width 30s linear';
+                timerFill.style.width = '0%';
+            }, 50);
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (!answered) timeUp();
+                }
+            }, 1000);
+        }
+
+        function timeUp() {
+            answered = true;
+            incorrectAnswers++;
+            const q = shuffledQuestions[currentQuestion];
+
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.classList.add('disabled');
+                if (btn.dataset.answer === q.respuesta_correcta) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            showExplanation(q);
+        }
+
+        function selectAnswer(btn, answer) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timer);
+
+            const q = shuffledQuestions[currentQuestion];
+            const isCorrect = answer === q.respuesta_correcta;
+
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.classList.add('disabled'));
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                correctAnswers++;
+                const points = q.dificultad === 'FÃ¡cil' ? 100 : q.dificultad === 'Intermedio' ? 200 : 300;
+                const timeBonus = Math.floor(timeLeft * 3);
+                score += points + timeBonus;
+                document.getElementById('scoreDisplay').textContent = score;
+            } else {
+                btn.classList.add('incorrect');
+                incorrectAnswers++;
+                buttons.forEach(b => {
+                    if (b.dataset.answer === q.respuesta_correcta) b.classList.add('correct');
+                });
+            }
+
+            showExplanation(q);
+        }
+
+        function showExplanation(q) {
+            document.getElementById('explanationText').textContent = q.explicacion;
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('btnNext').classList.add('show');
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion >= shuffledQuestions.length) {
+                showResults();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function use5050() {
+            if (lifeline5050Used || answered) return;
+            lifeline5050Used = true;
+            document.getElementById('lifeline5050').classList.add('used');
+
+            const q = shuffledQuestions[currentQuestion];
+            const buttons = Array.from(document.querySelectorAll('.option-btn'));
+            const wrongButtons = buttons.filter(b => b.dataset.answer !== q.respuesta_correcta);
+
+            const toHide = shuffleArray(wrongButtons).slice(0, 2);
+            toHide.forEach(btn => {
+                btn.style.visibility = 'hidden';
+                btn.classList.add('disabled');
+            });
+        }
+
+        function useSkip() {
+            if (lifelineSkipUsed || answered) return;
+            lifelineSkipUsed = true;
+            document.getElementById('lifelineSkip').classList.add('used');
+            clearInterval(timer);
+            nextQuestion();
+        }
+
+        function showResults() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('incorrectCount').textContent = incorrectAnswers;
+
+            const total = correctAnswers + incorrectAnswers;
+            const percentage = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+            document.getElementById('percentageScore').textContent = percentage + '%';
+
+            const msgEl = document.getElementById('resultMessage');
+            if (percentage >= 90) {
+                msgEl.textContent = 'Maestro Iluminado - Dominas los conocimientos del Primer Grado';
+                msgEl.style.background = 'rgba(76,175,80,0.2)';
+                msgEl.style.color = '#4CAF50';
+            } else if (percentage >= 70) {
+                msgEl.textContent = 'CompaÃ±ero Avanzado - Buen dominio, sigue profundizando';
+                msgEl.style.background = 'rgba(218,165,32,0.2)';
+                msgEl.style.color = '#daa520';
+            } else if (percentage >= 50) {
+                msgEl.textContent = 'Aprendiz en Progreso - Continua estudiando los textos';
+                msgEl.style.background = 'rgba(255,152,0,0.2)';
+                msgEl.style.color = '#ff9800';
+            } else {
+                msgEl.textContent = 'Profano Buscador - Debes volver a la Piedra Bruta';
+                msgEl.style.background = 'rgba(244,67,54,0.2)';
+                msgEl.style.color = '#f44336';
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
